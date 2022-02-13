@@ -1,0 +1,34 @@
+stages:
+  - build
+  - build_docker
+build_rarity:
+  image: golang:alpine
+  stage: build
+  only:
+    refs:
+      - main
+      - master
+  script:
+    - go mod download
+    - go build ./cmd/main
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - ./main
+docker_rarity:
+  image: docker:latest
+  stage: build_docker
+  services:
+    - docker:dind
+  only:
+    refs:
+      - main
+      - master
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - ./main
+  script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker build --build-arg CI_COMMIT_REF_SLUG=$CI_COMMIT_REF_SLUG --pull -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG" .
+    - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
