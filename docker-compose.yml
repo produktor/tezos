@@ -14,8 +14,8 @@ services:
       - POSTGRES_DB=_PG_DB_
     networks: [ 'mynetwork' ]
 
-  rarity-bot:
-    image: registry.gitlab.com/nft-space/rarity_bot:master
+  link-api:
+    image: registry.gitlab.com/diak312/link_api
     restart: always
     ports:
       - 80:80

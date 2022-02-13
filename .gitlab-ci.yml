@@ -1,7 +1,7 @@
 stages:
   - build
   - build_docker
-build_rarity:
+build_link_api:
   image: golang:alpine
   stage: build
   only:
@@ -15,7 +15,7 @@ build_rarity:
     expire_in: 1 week
     paths:
       - ./main
-docker_rarity:
+docker_link_api:
   image: docker:latest
   stage: build_docker
   services:
