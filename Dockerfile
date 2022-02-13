@@ -12,5 +12,6 @@ COPY main .
 COPY migrations ./migrations
 
 EXPOSE 80
+EXPOSE 3050
 
 CMD ["/dist/main"]
