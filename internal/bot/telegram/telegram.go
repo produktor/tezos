@@ -58,7 +58,7 @@ func (ts *TelegramService) GetBot() (*tgbotapi.BotAPI, error) {
 
 func (ts *TelegramService) ListenUpdates() {
 	updates := ts.bot.ListenForWebhook("/telegram")
-	go http.ListenAndServe("0.0.0.0:3000", nil)
+	go http.ListenAndServe("0.0.0.0:80", nil)
 
 	for update := range updates {
 		command := update.Message.Command()
