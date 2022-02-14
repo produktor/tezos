@@ -15,7 +15,7 @@ services:
     networks: [ 'mynetwork' ]
 
   link-api:
-    image: registry.gitlab.com/diak312/link_api
+    image: registry.gitlab.com/diak312/link_api:main
     restart: always
     ports:
       - 80:80

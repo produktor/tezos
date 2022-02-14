@@ -25,5 +25,5 @@ func New(s *links.LinkService, logger *zap.SugaredLogger)  {
 	r.HandleFunc("/link", h.Link).Methods("GET")
 	r.HandleFunc("/links", h.Links).Methods("POST")
 
-	http.ListenAndServe("localhost:3050", r)
+	http.ListenAndServe("0.0.0.0:3050", r)
 }
