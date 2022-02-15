@@ -6,6 +6,7 @@ import (
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
 	"link_api/domain/model"
 	"link_api/internal/domain/repository"
@@ -98,6 +99,52 @@ func (s *LinkService) GetTgLinksByGroupsIDs(ctx context.Context, groupsIDs []int
 
 		telegramLinks = append(telegramLinks, model.TelegramLinks{
 			TgGroup: group,
+			Link:    inv.InviteLink,
+		})
+	}
+
+	return telegramLinks, nil
+}
+
+func (s *LinkService) GetTgLinksByPrice(ctx context.Context, price decimal.Decimal) ([]model.TelegramLinks, error) {
+	telegramLinks := make([]model.TelegramLinks, 0)
+
+	groups, err := s.r.GetTgGroupsByPrice(ctx, price)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, group := range groups {
+		inviteTgConf := tgbotapi.CreateChatInviteLinkConfig{
+			ChatConfig: tgbotapi.ChatConfig{
+				ChatID: group.ID,
+			},
+			Name:               "",
+			ExpireDate:         0,
+			MemberLimit:        1,
+			CreatesJoinRequest: false,
+		}
+
+		invite, err := s.bot.Request(inviteTgConf)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		data, err := invite.Result.MarshalJSON()
+
+		var inv tgInvite
+		err = json.Unmarshal(data, &inv)
+		if err != nil {
+			return nil, err
+		}
+
+		telegramLinks = append(telegramLinks, model.TelegramLinks{
+			TgGroup: &model.TelegramGroup{
+				ID:          group.ID,
+				Title:       group.Title,
+				Description: group.Description,
+				Price:       group.Price,
+			},
 			Link:    inv.InviteLink,
 		})
 	}

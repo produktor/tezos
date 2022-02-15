@@ -6,6 +6,7 @@ import (
 	"errors"
 	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/shopspring/decimal"
 	"link_api/domain/model"
 )
 
@@ -81,4 +82,30 @@ func (r *LinkRepository) GetTgGroupByID(ctx context.Context, groupID int64) (*mo
 	}
 
 	return &group, nil
+}
+
+func (r *LinkRepository) GetTgGroupsByPrice(ctx context.Context, price decimal.Decimal) ([]model.TelegramGroup, error) {
+	groups := make([]model.TelegramGroup, 0)
+
+	psql := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
+	query, args, err := psql.Select("id", "title", "description", "price").
+		From("telegram_groups").Where(squirrel.LtOrEq{"price": price}).ToSql()
+
+	rows, err :=  r.db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var group model.TelegramGroup
+
+		err := rows.Scan(&group.ID, &group.Title, &group.Description, &group.Price)
+		if err != nil && errors.Is(err, sql.ErrNoRows) {
+			return nil, err
+		}
+
+		groups = append(groups, group)
+	}
+
+	return groups, nil
 }
