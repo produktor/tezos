@@ -1,0 +1,3 @@
+[submodule "hermes-dashboard"]
+	path = hermes-dashboard
+	url = git@github.com:GRyabkin/hermes-dashboard.git
