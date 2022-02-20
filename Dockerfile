@@ -22,10 +22,10 @@ RUN go build ./cmd/main
 #USER appuser
 
 # Empty alpine to just run "main" binary
-FROM alpine
+#FROM alpine
 
-COPY --from=builder /app/main /app/
-COPY --from=builder /app/migrations /app/
+#COPY --from=builder /app/main /app/
+#COPY --from=builder /app/migrations /app/migrations
 
 EXPOSE 80
 EXPOSE 3050
