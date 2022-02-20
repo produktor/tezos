@@ -15,7 +15,7 @@ WORKDIR /app
 RUN go mod download
 
 # Build and show an progress
-RUN go build -ldflags "-sw"  ./cmd/main
+RUN go build ./cmd/main
 
 #COPY migrations ./migrations
 #RUN adduser -S -D -H -h /app appuser
