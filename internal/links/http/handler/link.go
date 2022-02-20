@@ -9,26 +9,23 @@ import (
 )
 
 func(h *Handler) Link(w http.ResponseWriter, r *http.Request) {
-	test := r.Form.Get("groupID")
+	err := r.ParseForm()
+	if err != nil {
+		fmt.Println(err)
+	}
 
-	test1 := r.Form
-
-	fmt.Println(test1)
-
-	groupID, err := strconv.ParseInt(test, 10, 64)
-	if err == nil {
-		w.Write([]byte(err.Error()))
-
-		return
+	groupID, err := strconv.ParseInt(r.Form.Get("groupID"), 10, 64)
+	if err != nil {
+		fmt.Println(err)
 	}
 
 	tgGroupLink, err := h.s.GetTgLinkByGroupID(r.Context(), groupID)
 	if err != nil {
+		w.WriteHeader(500)
 		w.Write([]byte(err.Error()))
 
 		return
 	}
-
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)

@@ -8,12 +8,12 @@ import (
 	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
 	"link_api/domain/model"
-	"link_api/internal/domain/repository"
-	"net/http"
-
 	"link_api/internal/config"
+	"link_api/internal/domain/repository"
 	linkRepository "link_api/internal/repository"
 	"log"
+	"net/http"
+	"strings"
 )
 
 type TelegramService struct {
@@ -72,25 +72,64 @@ func (ts *TelegramService) ListenUpdates() {
 			if err != nil {
 				fmt.Println(err)
 			}
-		case "price":
-			chatID := update.Message.Chat.ID
-			chatTitle := update.Message.Chat.Title
-			chatDescription := update.Message.Chat.Description
-			chatPrice, err := decimal.NewFromString(update.Message.CommandArguments())
-			// @TODO нужны проверки на nil
-
-			//получаем чат и записываем в базу
-			err = ts.r.AddTgGroup(context.Background(), model.TelegramGroup{
-				ID:          chatID,
-				Title:       &chatTitle,
-				Description: &chatDescription,
-				Price:       chatPrice,
+		case "value":
+			admins, err := ts.bot.GetChatAdministrators(tgbotapi.ChatAdministratorsConfig{
+				ChatConfig: tgbotapi.ChatConfig{ChatID: update.Message.Chat.ID},
 			})
 			if err != nil {
 				fmt.Println(err)
 			}
 
-			messageText := fmt.Sprintf("Price %s was set!", update.Message.CommandArguments())
+			if !isAdmin(update.Message.From.ID, admins) {
+				continue
+			}
+
+			tgArgument := update.Message.CommandArguments()
+			args := strings.Split(tgArgument, " ")
+
+			if len(args) == 0 {
+				// @TODO возвращаем сообщение что неверно заданны аргументы, может вообще стоит их тут валидировать
+			}
+
+			var newTgGroup model.TelegramGroup
+			newTgGroup.ID = update.Message.Chat.ID
+			newTgGroup.Title = &update.Message.Chat.Title
+			newTgGroup.Description = &update.Message.Chat.Description
+
+			switch args[0] {
+			case "ownership":
+				newTgGroup.CriteriaType = "ownership"
+				newTgGroup.CriteriaToken = &args[1]
+			case "balance":
+				newTgGroup.CriteriaType = "balance"
+				newTgGroup.CriteriaCurrency = &args[1]
+
+				price, err := decimal.NewFromString(args[2])
+				if err != nil {
+					fmt.Println(err)
+				}
+
+				newTgGroup.CriteriaPrice = price
+			}
+
+			tgGroup, err := ts.r.GetTgGroups(context.Background(), )
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			if tgGroup != nil {
+				err = ts.r.UpdateTgGroup(context.Background(), newTgGroup)
+				if err != nil {
+					fmt.Println(err)
+				}
+			} else {
+				err = ts.r.AddTgGroup(context.Background(), newTgGroup)
+				if err != nil {
+					fmt.Println(err)
+				}
+			}
+
+			messageText := fmt.Sprintf("Criteria %s was set!", update.Message.CommandArguments())
 			message := tgbotapi.NewMessage(update.Message.Chat.ID, messageText)
 
 			_, err = ts.bot.Send(message)
@@ -99,4 +138,13 @@ func (ts *TelegramService) ListenUpdates() {
 			}
 		}
 	}
+}
+func isAdmin(userID int64, admins []tgbotapi.ChatMember) bool {
+	for _, admin := range admins {
+		if admin.User.ID == userID {
+			return true
+		}
+	}
+
+	return false
 }

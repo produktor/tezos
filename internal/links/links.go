@@ -140,10 +140,10 @@ func (s *LinkService) GetTgLinksByPrice(ctx context.Context, price decimal.Decim
 
 		telegramLinks = append(telegramLinks, model.TelegramLinks{
 			TgGroup: &model.TelegramGroup{
-				ID:          group.ID,
-				Title:       group.Title,
-				Description: group.Description,
-				Price:       group.Price,
+				ID:            group.ID,
+				Title:         group.Title,
+				Description:   group.Description,
+				CriteriaPrice: group.CriteriaPrice,
 			},
 			Link:    inv.InviteLink,
 		})
