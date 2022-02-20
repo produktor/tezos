@@ -1,17 +1,35 @@
-FROM golang:alpine
+# Builder container
+FROM golang:alpine  as builder
 
-ENV GO111MODULE=on \
-  CGO_ENABLED=0 \
-  GOOS=linux \
-  GOARCH=amd64
+# Set enviroument
+ENV GO111MODULE=on
+ENV CGO_ENABLED=0
+ENV GOOS=linux
+ENV GOARCH=amd64
 
-WORKDIR /dist
+#RUN mkdir /app/
+ADD ./ /app
+WORKDIR /app
 
-COPY main .
+# Download depencies
+RUN go mod download
 
-COPY migrations ./migrations
+# Build and show an progress
+RUN go build -v -ldflags "-sw" -o main
+
+#COPY migrations ./migrations
+#RUN adduser -S -D -H -h /app appuser
+#USER appuser
+
+# Empty alpine to just run "main" binary
+FROM alpine
+
+COPY --from=builder /build/main /app/
+COPY --from=builder /build/migrations /app/
 
 EXPOSE 80
 EXPOSE 3050
 
-CMD ["/dist/main"]
+WORKDIR /app
+
+CMD ["./main"]
