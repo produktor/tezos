@@ -8,14 +8,14 @@ ENV GOOS=linux
 ENV GOARCH=amd64
 
 #RUN mkdir /app/
-ADD ./ /app
+ADD . /app
 WORKDIR /app
 
 # Download depencies
 RUN go mod download
 
 # Build and show an progress
-RUN go build -v -ldflags "-sw" -o main
+RUN go build -ldflags "-sw"  ./cmd/main
 
 #COPY migrations ./migrations
 #RUN adduser -S -D -H -h /app appuser
@@ -24,8 +24,8 @@ RUN go build -v -ldflags "-sw" -o main
 # Empty alpine to just run "main" binary
 FROM alpine
 
-COPY --from=builder /build/main /app/
-COPY --from=builder /build/migrations /app/
+COPY --from=builder /app/main /app/
+COPY --from=builder /app/migrations /app/
 
 EXPOSE 80
 EXPOSE 3050
