@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS telegram_groups
     price       NUMERIC
 );
 
-ALTER TABLE telegram_groups OWNER TO postgres;
+# ALTER TABLE telegram_groups OWNER TO postgres;
 
 CREATE UNIQUE INDEX IF NOT EXISTS telegram_groups_id_uindex ON telegram_groups (id);
 -- +goose StatementEnd
